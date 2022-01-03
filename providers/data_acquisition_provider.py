@@ -1,3 +1,4 @@
+import copy
 import os
 
 import numpy as np
@@ -181,4 +182,4 @@ class AlgorithmsProvider:
             print('Reordering Dataframe, this is a one time process...')
             AlgorithmsProvider.__get_algorithms_comparisons()
 
-        return AlgorithmsProvider.__algorithms_comparisons
+        return copy.deepcopy(AlgorithmsProvider.__algorithms_comparisons)

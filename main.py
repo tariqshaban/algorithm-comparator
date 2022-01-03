@@ -13,10 +13,21 @@ pd.set_option('display.expand_frame_repr', False)
 AlgorithmsProvider.get_algorithms_raw()
 AlgorithmsProvider.get_algorithms_comparisons()
 
-# print(AlgorithmsProvider.get_algorithms_comparisons()[10][0])
+print(AlgorithmsProvider.get_algorithms_comparisons()[10][0])
 
-print(NonParametricTestsProvider.wilcoxon_test(dimension=100))
+print(NonParametricTestsProvider.wilcoxon_test(dimension=10))
 
+print(NonParametricTestsProvider.estimate_worst_algorithm(dimension=10, parameter=8))
+print(NonParametricTestsProvider.estimate_worst_algorithm(dimension=30, parameter=8))
+print(NonParametricTestsProvider.estimate_worst_algorithm(dimension=50, parameter=8))
+print(NonParametricTestsProvider.estimate_worst_algorithm(dimension=100, parameter=8))
+
+print(NonParametricTestsProvider.get_worst_algorithm(dimension=10, parameter=8))
+print(NonParametricTestsProvider.get_worst_algorithm(dimension=30, parameter=8))
+print(NonParametricTestsProvider.get_worst_algorithm(dimension=50, parameter=8))
+print(NonParametricTestsProvider.get_worst_algorithm(dimension=100, parameter=8))
+
+print(NonParametricTestsProvider.algorithm_ranking())
 #########################################################
 #########################################################
 
