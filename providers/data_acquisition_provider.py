@@ -2,7 +2,9 @@ import os
 
 import numpy as np
 import pandas as pd
+
 from helpers.progress_handler import ProgressHandler
+from providers.data_manifest_provider import DataManifestProvider
 
 
 class AlgorithmsProvider:
@@ -11,9 +13,6 @@ class AlgorithmsProvider:
 
     Attributes
     ----------
-        __DIMENSIONS                Specify the dimensions used in the algorithms in general
-        __PARAMETERS                Specify the number of parameters used in the algorithms
-
         __algorithms_raw            Acts as a cache for storing raw algorithm input
         __algorithms_comparisons      Acts as a cache for storing reordered algorithm input
 
@@ -33,9 +32,6 @@ class AlgorithmsProvider:
             Calls __get_algorithms_comparisons if __algorithms_comparisons is None, otherwise,
             it retrieves __algorithms_comparisons immediately.
     """
-
-    __DIMENSIONS = [10, 30, 50, 100]
-    __PARAMETERS = np.arange(14)
 
     __algorithms_raw = None
     __algorithms_comparisons = None
@@ -100,17 +96,17 @@ class AlgorithmsProvider:
         """
         Shows each algorithm performance for each problem set by showing the mean and the standard deviation.
 
-        :param int dimension: Specify to desired dimension (must be within __DIMENSIONS)
-        :param int parameter: Specify to desired parameter (must be within __PARAMETERS)
+        :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify to desired parameter (must be within 'DataManifestProvider.PARAMETERS')
         :return: A dataframe indicating each algorithm performance for a selected dimension and parameter
         """
 
         # Since appending to a dataframe is inefficient, we will be using 3D arrays,
         # then we will instantiate a new dataframe from the array's values.
 
-        if dimension not in AlgorithmsProvider.__DIMENSIONS:
+        if dimension not in DataManifestProvider.DIMENSIONS:
             raise ValueError('invalid dimension value')
-        if parameter not in AlgorithmsProvider.__PARAMETERS:
+        if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
         algorithm_names = AlgorithmsProvider.get_algorithms_raw().keys()
@@ -123,10 +119,11 @@ class AlgorithmsProvider:
             for problem in AlgorithmsProvider.get_algorithms_raw()[algorithm]:
                 index_names.append(problem)
                 if str(dimension) in AlgorithmsProvider.get_algorithms_raw()[algorithm][problem]:
-                    performance_array[-1].append([AlgorithmsProvider.get_algorithms_raw()
-                                                  [algorithm][problem][str(dimension)].iloc[parameter]['mean'],
-                                                  AlgorithmsProvider.get_algorithms_raw()
-                                                  [algorithm][problem][str(dimension)].iloc[parameter]['std']
+
+                    row = AlgorithmsProvider.get_algorithms_raw()[algorithm][problem][str(dimension)].iloc[parameter]
+
+                    performance_array[-1].append([row['mean'],
+                                                  row['std']
                                                   ])
                 else:
                     performance_array[-1].append([None, None])
@@ -156,11 +153,11 @@ class AlgorithmsProvider:
         dataframes = {}
         processed = 0
 
-        for dimension in AlgorithmsProvider.__DIMENSIONS:
+        for dimension in DataManifestProvider.DIMENSIONS:
             dataframes[dimension] = {}
-            for parameter in AlgorithmsProvider.__PARAMETERS:
-                print(ProgressHandler.show_progress(processed, len(AlgorithmsProvider.__DIMENSIONS) * len(
-                    AlgorithmsProvider.__PARAMETERS)))
+            for parameter in DataManifestProvider.PARAMETERS:
+                print(ProgressHandler.show_progress(processed, len(DataManifestProvider.DIMENSIONS) * len(
+                    DataManifestProvider.PARAMETERS)))
                 processed += 1
                 dataframes[dimension][parameter] = \
                     AlgorithmsProvider.__get_algorithms_performance_dataframe_by_dimension_and_parameter(

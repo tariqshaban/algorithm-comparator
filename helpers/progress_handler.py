@@ -37,7 +37,7 @@ class ProgressHandler:
         else:
             elapsed_time = (datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds() \
                            - ProgressHandler.__last_accessed
-            all_time_for_downloading = (elapsed_time * total / elapsed)
+            all_time_for_downloading = (elapsed_time * total / (elapsed+1))
             ProgressHandler.__remaining_time = all_time_for_downloading - elapsed_time
 
         if not isinstance(elapsed, int):

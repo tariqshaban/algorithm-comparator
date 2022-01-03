@@ -19,6 +19,9 @@ Install numpy
 Install pandas
 `pip install pandas`
 
+Install scipy
+`pip install scipy`
+
 You may need to configure the Python interpreter (depending on the used IDE)
 
 No further configuration is required.
@@ -26,18 +29,20 @@ No further configuration is required.
 
 Project Structure
 ------------
-    ├── README.md                       <- The top-level README for developers using this project.
+    ├── README.md                           <- The top-level README for developers using this project.
+    │
+    ├── assets
+    │   └── algorithms                      <- Storing the provided algorithm's files.
     │
     ├── helpers
-    │   └── algorithms                  <- Storing the provided algorithm's files.
-    │
-    ├── helpers
-    │   └── progress_handler            <- Set of static methods that aid some progress manipulations.
+    │   └── progress_handler                <- Set of static methods that aid some progress manipulations.
     │
     ├── providers
-    │   └── data_acquisition_provider   <- Static methods which handles data acquisition and tranformation.
+    │   │── data_acquisition_provider       <- Static methods which handles data acquisition and tranformation.
+    │   │── data_manifest_provider          <- Static final attributes which informs any functionality of the excepted data to be received.
+    │   └── non_parametric_tests_provider   <- Static methods which handles implementing nonparametric tests the transformed data.
     │
-    └── main                            <- Acts as a sandbox for methods invocation
+    └── main                                <- Acts as a sandbox for methods invocation
 
 
 Report / Findings
