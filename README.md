@@ -22,6 +22,9 @@ Install pandas
 Install scipy
 `pip install scipy`
 
+Install tabulate
+`pip install tabulate`
+
 You may need to configure the Python interpreter (depending on the used IDE)
 
 No further configuration is required.
@@ -35,6 +38,7 @@ Project Structure
     │   └── algorithms                      <- Storing the provided algorithm's files.
     │
     ├── helpers
+    │   │── dataframe_beautifier            <- Static methods for beautifying the output of the dataframe.
     │   └── progress_handler                <- Set of static methods that aid some progress manipulations.
     │
     ├── providers

@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon, friedmanchisquare
 
@@ -28,8 +31,8 @@ class NonParametricTestsProvider:
         """
         Provides a broad estimation of the best algorithm by calculating the mean for a given dimension.
 
-        :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
-        :param int parameter: Specify to desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
         :return: The best algorithm (estimated)
         """
 
@@ -38,17 +41,17 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
-        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension]
+        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
 
         algorithm_mean = {}
         count = 0
 
-        for problem in df[parameter].index.get_level_values('Problem').unique():
+        for problem in df.index.get_level_values('Problem').unique():
             count += 1
-            for algorithm in df[parameter].loc[problem]:
-                if df[parameter].loc[problem][algorithm]['Mean'] is not None:
+            for algorithm in df.loc[problem]:
+                if df.loc[problem][algorithm]['Mean'] is not None:
                     algorithm_mean[algorithm] = algorithm_mean.get(algorithm, 0) + \
-                                                df[parameter].loc[problem][algorithm]['Mean']
+                                                df.loc[problem][algorithm]['Mean']
 
         for key in algorithm_mean:
             algorithm_mean[key] = algorithm_mean.get(key, 0) / count
@@ -65,8 +68,8 @@ class NonParametricTestsProvider:
         """
         Provides a relatively accurate estimation of the best algorithm by calculating the mean of the ranks.
 
-        :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
-        :param int parameter: Specify to desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
         :return: The best algorithm
         """
 
@@ -83,8 +86,8 @@ class NonParametricTestsProvider:
         """
         Compare all algorithms with a provided reference algorithm (preferably the best).
 
-        :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
-        :param str algorithm_to_compare: Specify to desired algorithm to compare
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param str algorithm_to_compare: Specify the desired algorithm to compare
         :return: A dataframe of p values obtained for Wilcoxon in concurrence with the selected reference algorithm
         """
 
@@ -101,10 +104,10 @@ class NonParametricTestsProvider:
                 for algorithm in df[parameter].loc[problem]:
                     df[parameter].loc[problem][algorithm]['Std'] = None
 
-            df[parameter].reset_index(level=1, drop=True, inplace=True)
-
-            df[parameter].dropna(how='all', axis=0, inplace=True)
-            df[parameter].dropna(how='all', axis=1, inplace=True)
+            df[parameter] = df[parameter] \
+                .reset_index(level=1, drop=True) \
+                .dropna(how='all', axis=0) \
+                .dropna(how='all', axis=1)
 
         result = {}
         column_names = [column for column in df[0]]
@@ -134,9 +137,9 @@ class NonParametricTestsProvider:
         """
         Conducts friedman test on each algorithm.
 
-        :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
-        :param int parameter: Specify to desired parameter (must be within 'DataManifestProvider.PARAMETERS')
-        :return: A [statistic, pvalue] directly from the friedmanchisquare method
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :return: A [statistic, p-value] directly from the 'friedmanchisquare' method
         """
 
         if dimension not in DataManifestProvider.DIMENSIONS:
@@ -144,20 +147,20 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
-        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension]
+        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
 
-        for problem in df[parameter].index.get_level_values('Problem').unique():
-            for algorithm in df[parameter].loc[problem]:
-                df[parameter].loc[problem][algorithm]['Std'] = None
+        for problem in df.index.get_level_values('Problem').unique():
+            for algorithm in df.loc[problem]:
+                df.loc[problem][algorithm]['Std'] = None
 
-        df[parameter].reset_index(level=1, drop=True, inplace=True)
-
-        df[parameter].dropna(how='all', axis=0, inplace=True)
-        df[parameter].dropna(how='all', axis=1, inplace=True)
+        df = df \
+            .reset_index(level=1, drop=True) \
+            .dropna(how='all', axis=0) \
+            .dropna(how='all', axis=1)
 
         algorithm_values = {}
-        for column in df[parameter]:
-            algorithm_values[column] = algorithm_values.get(column, []) + df[parameter][column].tolist()
+        for column in df:
+            algorithm_values[column] = algorithm_values.get(column, []) + df[column].tolist()
 
         result = friedmanchisquare(*list(algorithm_values.values()))
 
@@ -168,8 +171,8 @@ class NonParametricTestsProvider:
         """
         Returns the ranking of each algorithm.
 
-        :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
-        :param int parameter: Specify to desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
         :return: A dataframe of ranks for each algorithm
         """
 
@@ -178,29 +181,83 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
-        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension]
+        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
 
-        for problem in df[parameter].index.get_level_values('Problem').unique():
-            for algorithm in df[parameter].loc[problem]:
-                df[parameter].loc[problem][algorithm]['Std'] = None
+        for problem in df.index.get_level_values('Problem').unique():
+            for algorithm in df.loc[problem]:
+                df.loc[problem][algorithm]['Std'] = None
 
-        complete_df = df[parameter]
-
-        complete_df = complete_df \
+        df = df \
             .reset_index(level=1, drop=True) \
-            .dropna(how='all', axis=0)\
-            .dropna(how='all', axis=1) \
-            .reset_index(drop=True)
+            .dropna(how='all', axis=0) \
+            .dropna(how='all', axis=1)
 
-        complete_df.index.name = 'Algorithm'
+        df.index.name = 'Algorithm'
 
-        complete_df = complete_df.rank(axis=1)
+        df = df.rank(axis=1)
 
-        complete_df = (complete_df.sum() / complete_df.count())
+        df = (df.sum() / df.count())
 
         friedman = NonParametricTestsProvider.friedman_test(dimension=dimension, parameter=parameter)
 
-        complete_df['P_Value'] = friedman[1]
-        complete_df['Statistic'] = friedman[0]
+        df['P_Value'] = friedman[1]
+        df['Statistic'] = friedman[0]
 
-        return complete_df
+        return df.to_frame()
+
+    @staticmethod
+    def get_algorithms_comparisons_wtl(dimension=10, parameter=0):
+        """
+        Adds win-tie-lose attribute with the get_algorithms_comparisons method.
+
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :return: A dataframe of Measurements for each algorithm and problem with a w/t/l for each algorithm
+        """
+
+        if dimension not in DataManifestProvider.DIMENSIONS:
+            raise ValueError('invalid dimension value')
+        if parameter not in DataManifestProvider.PARAMETERS:
+            raise ValueError('invalid parameter value')
+
+        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
+
+        for problem in df.index.get_level_values('Problem').unique():
+            for algorithm in df.loc[problem]:
+                df.loc[problem][algorithm]['Std'] = None
+
+        df = df \
+            .reset_index(level=1, drop=True) \
+            .dropna(how='all', axis=0) \
+            .dropna(how='all', axis=1)
+
+        df.index.name = 'Algorithm'
+
+        total_result = defaultdict(dict)
+
+        for index, row in df.iterrows():
+            max_val = row.min()
+            result = np.zeros(len(df.columns))
+            for column_index, column in enumerate(df.columns):
+                if row[column] == max_val:
+                    result[column_index] = 1
+            if (result == 1).sum() != 1:
+                result[result == 1] = -1
+            for column_index, column in enumerate(df.columns):
+                if result[column_index] == 1:
+                    total_result[column]['win'] = total_result[column].get('win', 0) + 1
+                elif result[column_index] == -1:
+                    total_result[column]['draw'] = total_result[column].get('draw', 0) + 1
+                else:
+                    total_result[column]['lose'] = total_result[column].get('lose', 0) + 1
+
+        results_str = []
+        for key, value in total_result.items():
+            results_str.append(f'{value.get("win", 0)}/'
+                               f'{value.get("draw", 0)}/'
+                               f'{value.get("lose", 0)}')
+
+        results_df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter] \
+            .append(pd.DataFrame({'w/t/l': results_str}, index=df.columns).T)
+
+        return results_df

@@ -97,8 +97,8 @@ class AlgorithmsProvider:
         """
         Shows each algorithm performance for each problem set by showing the mean and the standard deviation.
 
-        :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
-        :param int parameter: Specify to desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
         :return: A dataframe indicating each algorithm performance for a selected dimension and parameter
         """
 
