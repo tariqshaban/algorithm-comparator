@@ -17,15 +17,15 @@ print(AlgorithmsProvider.get_algorithms_comparisons()[10][0])
 
 print(NonParametricTestsProvider.wilcoxon_test(dimension=10))
 
-print(NonParametricTestsProvider.estimate_worst_algorithm(dimension=10, parameter=8))
-print(NonParametricTestsProvider.estimate_worst_algorithm(dimension=30, parameter=8))
-print(NonParametricTestsProvider.estimate_worst_algorithm(dimension=50, parameter=8))
-print(NonParametricTestsProvider.estimate_worst_algorithm(dimension=100, parameter=8))
+print(NonParametricTestsProvider.estimate_best_algorithm(dimension=10, parameter=8))
+print(NonParametricTestsProvider.estimate_best_algorithm(dimension=30, parameter=8))
+print(NonParametricTestsProvider.estimate_best_algorithm(dimension=50, parameter=8))
+print(NonParametricTestsProvider.estimate_best_algorithm(dimension=100, parameter=8))
 
-print(NonParametricTestsProvider.get_worst_algorithm(dimension=10, parameter=8))
-print(NonParametricTestsProvider.get_worst_algorithm(dimension=30, parameter=8))
-print(NonParametricTestsProvider.get_worst_algorithm(dimension=50, parameter=8))
-print(NonParametricTestsProvider.get_worst_algorithm(dimension=100, parameter=8))
+print(NonParametricTestsProvider.get_best_algorithm(dimension=10, parameter=8))
+print(NonParametricTestsProvider.get_best_algorithm(dimension=30, parameter=8))
+print(NonParametricTestsProvider.get_best_algorithm(dimension=50, parameter=8))
+print(NonParametricTestsProvider.get_best_algorithm(dimension=100, parameter=8))
 
 print(NonParametricTestsProvider.algorithm_ranking())
 #########################################################

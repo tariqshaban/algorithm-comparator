@@ -11,12 +11,12 @@ class NonParametricTestsProvider:
 
     Methods
     -------
-        estimate_worst_algorithm(dimension=10, parameter=0):
-            Provides a broad estimation of the worst algorithm by calculating the mean for a given dimension.
-        get_worst_algorithm(dimension=10, parameter=0):
-            Provides a relatively accurate estimation of the worst algorithm by calculating the mean of the ranks.
+        estimate_best_algorithm(dimension=10, parameter=0):
+            Provides a broad estimation of the best algorithm by calculating the mean for a given dimension.
+        get_best_algorithm(dimension=10, parameter=0):
+            Provides a relatively accurate estimation of the best algorithm by calculating the mean of the ranks.
         wilcoxon_test(dimension=10, algorithm_to_compare=''):
-            Compare all algorithms with a provided reference algorithm (preferably the worst).
+            Compare all algorithms with a provided reference algorithm (preferably the best).
         friedman_test(dimension=10, parameter=0):
             Conducts friedman test on each algorithm.
         algorithm_ranking(dimension=10, parameter=0):
@@ -24,13 +24,13 @@ class NonParametricTestsProvider:
     """
 
     @staticmethod
-    def estimate_worst_algorithm(dimension=10, parameter=0):
+    def estimate_best_algorithm(dimension=10, parameter=0):
         """
-        Provides a broad estimation of the worst algorithm by calculating the mean for a given dimension.
+        Provides a broad estimation of the best algorithm by calculating the mean for a given dimension.
 
         :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
         :param int parameter: Specify to desired parameter (must be within 'DataManifestProvider.PARAMETERS')
-        :return: The worst algorithm (estimated)
+        :return: The best algorithm (estimated)
         """
 
         if dimension not in DataManifestProvider.DIMENSIONS:
@@ -53,35 +53,35 @@ class NonParametricTestsProvider:
         for key in algorithm_mean:
             algorithm_mean[key] = algorithm_mean.get(key, 0) / count
 
-        worst = max(algorithm_mean, key=algorithm_mean.get)
+        best = min(algorithm_mean, key=algorithm_mean.get)
 
         print(
-            f'Worst Algorithm is {worst} with an average difference from optimal of {algorithm_mean[worst]}.')
+            f'Best Algorithm is {best} with an average difference from optimal of {algorithm_mean[best]}.')
 
-        return worst
+        return best
 
     @staticmethod
-    def get_worst_algorithm(dimension=10, parameter=0):
+    def get_best_algorithm(dimension=10, parameter=0):
         """
-        Provides a relatively accurate estimation of the worst algorithm by calculating the mean of the ranks.
+        Provides a relatively accurate estimation of the best algorithm by calculating the mean of the ranks.
 
         :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
         :param int parameter: Specify to desired parameter (must be within 'DataManifestProvider.PARAMETERS')
-        :return: The worst algorithm
+        :return: The best algorithm
         """
 
         ranking = NonParametricTestsProvider.algorithm_ranking(dimension=dimension, parameter=parameter)
 
         ranking = ranking.drop(['P_Value', 'Statistic'])
 
-        worst_algorithm = ranking[ranking == ranking.max()].index.format()[0]
+        best_algorithm = ranking[ranking == ranking.min()].index.format()[0]
 
-        return worst_algorithm
+        return best_algorithm
 
     @staticmethod
     def wilcoxon_test(dimension=10, algorithm_to_compare=''):
         """
-        Compare all algorithms with a provided reference algorithm (preferably the worst).
+        Compare all algorithms with a provided reference algorithm (preferably the best).
 
         :param int dimension: Specify to desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
         :param str algorithm_to_compare: Specify to desired algorithm to compare
@@ -92,7 +92,7 @@ class NonParametricTestsProvider:
             raise ValueError('invalid dimension value')
 
         if len(algorithm_to_compare) == 0:
-            algorithm_to_compare = NonParametricTestsProvider.get_worst_algorithm(dimension=dimension)
+            algorithm_to_compare = NonParametricTestsProvider.get_best_algorithm(dimension=dimension)
 
         df = AlgorithmsProvider.get_algorithms_comparisons()[dimension]
 
