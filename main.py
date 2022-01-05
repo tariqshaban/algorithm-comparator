@@ -29,7 +29,8 @@ print(NonParametricTestsProvider.get_best_algorithm(dimension=30, parameter=8))
 print(NonParametricTestsProvider.get_best_algorithm(dimension=50, parameter=8))
 print(NonParametricTestsProvider.get_best_algorithm(dimension=100, parameter=8))
 
-DataframeBeautifier.print_console_stream(NonParametricTestsProvider.algorithm_ranking(dimension=10, parameter=8))
+DataframeBeautifier.print_console_stream(
+    NonParametricTestsProvider.algorithm_ranking(dimension=100, parameter=8).to_frame())
 #########################################################
 #########################################################
 

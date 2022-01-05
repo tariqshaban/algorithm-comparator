@@ -203,7 +203,7 @@ class NonParametricTestsProvider:
         df['P_Value'] = friedman[1]
         df['Statistic'] = friedman[0]
 
-        return df.to_frame()
+        return df
 
     @staticmethod
     def get_algorithms_comparisons_wtl(dimension=10, parameter=0):
@@ -236,10 +236,10 @@ class NonParametricTestsProvider:
         total_result = defaultdict(dict)
 
         for index, row in df.iterrows():
-            max_val = row.min()
+            min_val = row.min()
             result = np.zeros(len(df.columns))
             for column_index, column in enumerate(df.columns):
-                if row[column] == max_val:
+                if row[column] == min_val:
                     result[column_index] = 1
             if (result == 1).sum() != 1:
                 result[result == 1] = -1
