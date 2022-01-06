@@ -8,7 +8,7 @@ class AdjustedPValueMethods(Enum):
 
     BONFERRONI = 'bonferroni'  # one-step correction
 
-    SIDAK = 'sidak '  # one-step correction
+    SIDAK = 'sidak'  # one-step correction
 
     HOLM_SIDAK = 'holm-sidak'  # step down method using Sidak adjustments
 

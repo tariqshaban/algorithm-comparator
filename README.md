@@ -25,6 +25,9 @@ Install scipy
 Install tabulate
 `pip install tabulate`
 
+Install statsmodels
+`pip install statsmodels`
+
 You may need to configure the Python interpreter (depending on the used IDE)
 
 No further configuration is required.

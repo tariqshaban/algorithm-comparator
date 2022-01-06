@@ -3,7 +3,10 @@ from collections import defaultdict
 import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon, friedmanchisquare
+import statsmodels.stats as sm
+from statsmodels.stats.multitest import multipletests
 
+from enums.adjusted_p_value_methods import AdjustedPValueMethods
 from providers.data_acquisition_provider import DataAcquisitionProvider
 from providers.data_manifest_provider import DataManifestProvider
 
@@ -24,6 +27,8 @@ class NonParametricTestsProvider:
             Conducts friedman test on each algorithm.
         friedman_test(dimension=10, parameter=0):
             Returns the ranking of each algorithm.
+        get_post_hoc_tests(dimension=10, parameter=0, algorithm_to_compare=''):
+            Displays unadjusted p values obtained from wilcoxon in addition with selected correction methods.
     """
 
     @staticmethod
@@ -259,3 +264,38 @@ class NonParametricTestsProvider:
             .append(pd.DataFrame({'w/t/l': results_str}, index=df.columns).T)
 
         return results_df
+
+    @staticmethod
+    def get_post_hoc_tests(dimension=10, parameter=0, algorithm_to_compare=''):
+        """
+        Displays unadjusted p values obtained from wilcoxon in addition with selected correction methods.
+
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :param str algorithm_to_compare: Specify the desired algorithm to compare
+        :return: A dataframe of p values obtained for Wilcoxon in addition to p values from selected correction methods
+        """
+
+        if dimension not in DataManifestProvider.DIMENSIONS:
+            raise ValueError('invalid dimension value')
+        if parameter not in DataManifestProvider.PARAMETERS:
+            raise ValueError('invalid parameter value')
+
+        unadjusted_p_values = \
+            NonParametricTestsProvider.wilcoxon_test(dimension=dimension,
+                                                     parameter=parameter,
+                                                     algorithm_to_compare=algorithm_to_compare).T['P-Value']
+
+        algorithm_names = unadjusted_p_values.index
+        unadjusted_p_values = unadjusted_p_values.tolist()
+
+        p_values = [unadjusted_p_values]
+
+        for method in AdjustedPValueMethods:
+            result = sm.multitest.multipletests(unadjusted_p_values, method=method.value)
+            p_values.append(result[1])
+
+        df = pd.DataFrame(p_values, columns=algorithm_names,
+                          index=['unadjusted-p'] + [e.value for e in AdjustedPValueMethods]).T
+
+        return df
