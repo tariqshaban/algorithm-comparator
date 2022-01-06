@@ -177,7 +177,7 @@ class DataAcquisitionProvider:
 
         root_directory = 'assets/cached_instances/algorithms_comparisons'
 
-        algorithms_comparisons = DataAcquisitionProvider.get_algorithms_comparisons()
+        algorithms_comparisons = DataAcquisitionProvider.get_algorithms_comparisons(fast_fetch=False)
 
         for dimension in algorithms_comparisons:
             for parameter in algorithms_comparisons[dimension]:

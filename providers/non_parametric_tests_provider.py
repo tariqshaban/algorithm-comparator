@@ -199,7 +199,7 @@ class NonParametricTestsProvider:
 
         df = df.rank(axis=1)
 
-        df = (df.sum() / df.count())
+        df = df.mean()
 
         friedman = NonParametricTestsProvider.__friedman_test(dimension=dimension, parameter=parameter)
 
