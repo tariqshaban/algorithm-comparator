@@ -1,5 +1,6 @@
 import copy
 import os
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -8,7 +9,7 @@ from helpers.progress_handler import ProgressHandler
 from providers.data_manifest_provider import DataManifestProvider
 
 
-class AlgorithmsProvider:
+class DataAcquisitionProvider:
     """
     Static methods which handles data acquisition and transformation.
 
@@ -27,9 +28,13 @@ class AlgorithmsProvider:
             it retrieves __algorithms_raw immediately.
         __get_algorithms_performance_dataframe_by_dimension_and_parameter(dimension=10, parameter=0):
             Shows each algorithm performance for each problem set by showing the mean and the standard deviation.
-        __get_algorithms_comparisons():
+        __get_cached_algorithms_comparisons():
+            Retrieves the algorithm comparison's snapshot.
+        cache_algorithms_comparisons():
+            Collects a snapshot of algorithms comparisons for faster fetch in the future.
+        __get_algorithms_comparisons(fast_fetch=True):
             Processes the loaded raw txt file into display a dataframe suitable for algorithms comparisons.
-        get_algorithms_comparisons():
+        get_algorithms_comparisons(fast_fetch=True):
             Calls __get_algorithms_comparisons if __algorithms_comparisons is None, otherwise,
             it retrieves __algorithms_comparisons immediately.
     """
@@ -74,7 +79,7 @@ class AlgorithmsProvider:
 
         ProgressHandler.reset_progress()
 
-        AlgorithmsProvider.__algorithms_raw = dataframes
+        DataAcquisitionProvider.__algorithms_raw = dataframes
 
     @staticmethod
     def get_algorithms_raw():
@@ -86,11 +91,11 @@ class AlgorithmsProvider:
                  containing dataframes as the value pair, {str: {str: {str: DataFrame()}}}.
         """
 
-        if AlgorithmsProvider.__algorithms_raw is None:
+        if DataAcquisitionProvider.__algorithms_raw is None:
             print('Fetching Raw Files, this is a one time process...')
-            AlgorithmsProvider.__get_algorithms_raw()
+            DataAcquisitionProvider.__get_algorithms_raw()
 
-        return AlgorithmsProvider.__algorithms_raw
+        return DataAcquisitionProvider.__algorithms_raw
 
     @staticmethod
     def __get_algorithms_performance_dataframe_by_dimension_and_parameter(dimension=10, parameter=0):
@@ -110,18 +115,19 @@ class AlgorithmsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
-        algorithm_names = AlgorithmsProvider.get_algorithms_raw().keys()
+        algorithm_names = DataAcquisitionProvider.get_algorithms_raw().keys()
         index_names = []
         performance_array = []
 
-        for algorithm in AlgorithmsProvider.get_algorithms_raw():
+        for algorithm in DataAcquisitionProvider.get_algorithms_raw():
             performance_array.append([])
             index_names = []
-            for problem in AlgorithmsProvider.get_algorithms_raw()[algorithm]:
+            for problem in DataAcquisitionProvider.get_algorithms_raw()[algorithm]:
                 index_names.append(problem)
-                if str(dimension) in AlgorithmsProvider.get_algorithms_raw()[algorithm][problem]:
+                if str(dimension) in DataAcquisitionProvider.get_algorithms_raw()[algorithm][problem]:
 
-                    row = AlgorithmsProvider.get_algorithms_raw()[algorithm][problem][str(dimension)].iloc[parameter]
+                    row = DataAcquisitionProvider.get_algorithms_raw()[algorithm][problem][str(dimension)].iloc[
+                        parameter]
 
                     performance_array[-1].append([row['mean'],
                                                   row['std']
@@ -143,13 +149,63 @@ class AlgorithmsProvider:
         return df.sort_index()
 
     @staticmethod
-    def __get_algorithms_comparisons():
+    def __get_cached_algorithms_comparisons():
+        """
+        Retrieves the algorithm comparison's snapshot.
+        """
+
+        root_directory = 'assets/cached_instances/algorithms_comparisons'
+
+        dataframes = {}
+
+        for dimension in DataManifestProvider.DIMENSIONS:
+            dataframes[dimension] = {}
+            for parameter in DataManifestProvider.PARAMETERS:
+                file_directory = f'{root_directory}/{dimension}D/{parameter}.csv'
+                dataframes[dimension][parameter] = pd.read_csv(file_directory, skiprows=1)
+
+                dataframes[dimension][parameter] = dataframes[dimension][parameter].set_index(
+                    ['Problem', 'Measurement'])
+
+        return dataframes
+
+    @staticmethod
+    def cache_algorithms_comparisons():
+        """
+        Collects a snapshot of algorithms comparisons for faster fetch in the future.
+        """
+
+        root_directory = 'assets/cached_instances/algorithms_comparisons'
+
+        algorithms_comparisons = DataAcquisitionProvider.get_algorithms_comparisons()
+
+        for dimension in algorithms_comparisons:
+            for parameter in algorithms_comparisons[dimension]:
+                file_directory = f'{root_directory}/{dimension}D/{parameter}.csv'
+
+                if not os.path.exists(os.path.dirname(file_directory)):
+                    os.makedirs(os.path.dirname(file_directory))
+
+                f = open(f'{file_directory}', "w+")
+                f.write(f'# Timestamp: {datetime.utcnow()}\n')
+                f.close()
+
+                algorithms_comparisons[dimension][parameter].to_csv(f'{file_directory}', mode='a')
+
+    @staticmethod
+    def __get_algorithms_comparisons(fast_fetch=True):
         """
         Processes the loaded raw txt file into display a dataframe suitable for algorithms comparisons.
 
+        :param bool fast_fetch: Retrieves algorithms comparisons from a saved snapshot instantly
         :return: A dictionary of dimensions containing a dictionary of parameters
                  containing dataframes as the value pair, {str: {str: DataFrame()}}.
         """
+
+        if fast_fetch:
+            DataAcquisitionProvider.__algorithms_comparisons = \
+                DataAcquisitionProvider.__get_cached_algorithms_comparisons()
+            return
 
         dataframes = {}
         processed = 0
@@ -161,25 +217,26 @@ class AlgorithmsProvider:
                     DataManifestProvider.PARAMETERS)))
                 processed += 1
                 dataframes[dimension][parameter] = \
-                    AlgorithmsProvider.__get_algorithms_performance_dataframe_by_dimension_and_parameter(
+                    DataAcquisitionProvider.__get_algorithms_performance_dataframe_by_dimension_and_parameter(
                         dimension=dimension, parameter=parameter)
 
         ProgressHandler.reset_progress()
 
-        AlgorithmsProvider.__algorithms_comparisons = dataframes
+        DataAcquisitionProvider.__algorithms_comparisons = dataframes
 
     @staticmethod
-    def get_algorithms_comparisons():
+    def get_algorithms_comparisons(fast_fetch=True):
         """
         Calls __get_algorithms_comparisons if __algorithms_comparisons is None, otherwise,
         it retrieves __algorithms_comparisons immediately.
 
+        :param bool fast_fetch: Retrieves algorithms comparisons from a saved snapshot instantly
         :return: A dictionary of dimensions containing a dictionary of parameters
                  containing dataframes as the value pair, {str: {str: DataFrame()}}.
         """
 
-        if AlgorithmsProvider.__algorithms_comparisons is None:
+        if DataAcquisitionProvider.__algorithms_comparisons is None:
             print('Reordering Dataframe, this is a one time process...')
-            AlgorithmsProvider.__get_algorithms_comparisons()
+            DataAcquisitionProvider.__get_algorithms_comparisons(fast_fetch=fast_fetch)
 
-        return copy.deepcopy(AlgorithmsProvider.__algorithms_comparisons)
+        return copy.deepcopy(DataAcquisitionProvider.__algorithms_comparisons)

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon, friedmanchisquare
 
-from providers.data_acquisition_provider import AlgorithmsProvider
+from providers.data_acquisition_provider import DataAcquisitionProvider
 from providers.data_manifest_provider import DataManifestProvider
 
 
@@ -41,7 +41,7 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
-        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
+        df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
         algorithm_mean = {}
         count = 0
@@ -96,7 +96,7 @@ class NonParametricTestsProvider:
             algorithm_to_compare = NonParametricTestsProvider.get_best_algorithm(dimension=dimension,
                                                                                  parameter=parameter)
 
-        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
+        df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
         sample_size = len(df.index.get_level_values('Problem').unique())
 
@@ -145,7 +145,7 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
-        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
+        df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
         for problem in df.index.get_level_values('Problem').unique():
             for algorithm in df.loc[problem]:
@@ -179,7 +179,7 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
-        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
+        df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
         for problem in df.index.get_level_values('Problem').unique():
             for algorithm in df.loc[problem]:
@@ -218,7 +218,7 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
-        df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter]
+        df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
         for problem in df.index.get_level_values('Problem').unique():
             for algorithm in df.loc[problem]:
@@ -255,7 +255,7 @@ class NonParametricTestsProvider:
                                f'{value.get("draw", 0)}/'
                                f'{value.get("lose", 0)}')
 
-        results_df = AlgorithmsProvider.get_algorithms_comparisons()[dimension][parameter] \
+        results_df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter] \
             .append(pd.DataFrame({'w/t/l': results_str}, index=df.columns).T)
 
         return results_df
