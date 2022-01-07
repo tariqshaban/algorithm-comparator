@@ -16,9 +16,6 @@ DataframeBeautifier.print_console_stream(
     apply_scientific_notation_to_all_columns=False,
     floating_scientific_notation_rows=['P-Value']
 )
-DataframeBeautifier.print_console_stream(
-    NonParametricTestsProvider.get_post_hoc_tests(dimension=10, parameter=8)
-)
 
 print(NonParametricTestsProvider.estimate_best_algorithm(dimension=10, parameter=8))
 print(NonParametricTestsProvider.estimate_best_algorithm(dimension=30, parameter=8))
@@ -36,6 +33,11 @@ DataframeBeautifier.print_console_stream(
     floating_scientific_notation_columns=['P-Value', 'Statistic'],
     transpose=True
 )
+
+DataframeBeautifier.print_console_stream(
+    NonParametricTestsProvider.get_post_hoc_tests(dimension=10, parameter=8)
+)
+
 #########################################################
 #########################################################
 

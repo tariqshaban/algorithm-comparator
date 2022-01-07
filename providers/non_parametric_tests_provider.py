@@ -281,19 +281,30 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('invalid parameter value')
 
+        if len(algorithm_to_compare) == 0:
+            algorithm_to_compare = NonParametricTestsProvider.get_best_algorithm(dimension=dimension,
+                                                                                 parameter=parameter)
+
         unadjusted_p_values = \
             NonParametricTestsProvider.wilcoxon_test(dimension=dimension,
                                                      parameter=parameter,
                                                      algorithm_to_compare=algorithm_to_compare).T['P-Value']
 
-        algorithm_names = unadjusted_p_values.index
+        algorithm_names = unadjusted_p_values.index.to_list()
+
         unadjusted_p_values = unadjusted_p_values.tolist()
+
+        algorithm_to_compare_index = algorithm_names.index(algorithm_to_compare)
+        del unadjusted_p_values[algorithm_to_compare_index]
 
         p_values = [unadjusted_p_values]
 
         for method in AdjustedPValueMethods:
             result = sm.multitest.multipletests(unadjusted_p_values, method=method.value)
             p_values.append(result[1])
+
+        for count, method in enumerate(p_values):
+            p_values[count] = np.insert(method, algorithm_to_compare_index, 1)
 
         df = pd.DataFrame(p_values, columns=algorithm_names,
                           index=['unadjusted-p'] + [e.value for e in AdjustedPValueMethods]).T
