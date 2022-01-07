@@ -19,6 +19,12 @@ Install numpy
 Install pandas
 `pip install pandas`
 
+install matplotlib
+`pip install matplotlib`
+
+install seaborn
+`pip install seaborn`
+
 Install scipy
 `pip install scipy`
 
@@ -38,7 +44,11 @@ Project Structure
     ├── README.md                           <- The top-level README for developers using this project.
     │
     ├── assets
-    │   └── algorithms                      <- Storing the provided algorithm's files.
+    │   │── algorithms                      <- Storing the provided algorithm's files.
+    │   └── cached_instances                <- Storing processed tables.
+    │
+    ├── enums
+    │   └── adjusted_p_value_methods        <- Enumerate adjusted p-value methods.
     │
     ├── helpers
     │   │── dataframe_beautifier            <- Static methods for beautifying the output of the dataframe.
@@ -47,6 +57,7 @@ Project Structure
     ├── providers
     │   │── data_acquisition_provider       <- Static methods which handles data acquisition and tranformation.
     │   │── data_manifest_provider          <- Static final attributes which informs any functionality of the excepted data to be received.
+    │   │── plots_provider                  <- Static methods which perform the plotting functionality.
     │   └── non_parametric_tests_provider   <- Static methods which handles implementing nonparametric tests the transformed data.
     │
     └── main                                <- Acts as a sandbox for methods invocation

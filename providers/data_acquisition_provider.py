@@ -111,9 +111,9 @@ class DataAcquisitionProvider:
         # then we will instantiate a new dataframe from the array's values.
 
         if dimension not in DataManifestProvider.DIMENSIONS:
-            raise ValueError('invalid dimension value')
+            raise ValueError('Invalid dimension value')
         if parameter not in DataManifestProvider.PARAMETERS:
-            raise ValueError('invalid parameter value')
+            raise ValueError('Invalid parameter value')
 
         algorithm_names = DataAcquisitionProvider.get_algorithms_raw().keys()
         index_names = []

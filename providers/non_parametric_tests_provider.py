@@ -2,9 +2,8 @@ from collections import defaultdict
 
 import numpy as np
 import pandas as pd
+import statsmodels.stats.multitest as smt
 from scipy.stats import wilcoxon, friedmanchisquare
-import statsmodels.stats as sm
-from statsmodels.stats.multitest import multipletests
 
 from enums.adjusted_p_value_methods import AdjustedPValueMethods
 from providers.data_acquisition_provider import DataAcquisitionProvider
@@ -42,9 +41,9 @@ class NonParametricTestsProvider:
         """
 
         if dimension not in DataManifestProvider.DIMENSIONS:
-            raise ValueError('invalid dimension value')
+            raise ValueError('Invalid dimension value')
         if parameter not in DataManifestProvider.PARAMETERS:
-            raise ValueError('invalid parameter value')
+            raise ValueError('Invalid parameter value')
 
         df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
@@ -90,13 +89,13 @@ class NonParametricTestsProvider:
 
         :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
         :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
-        :param str algorithm_to_compare: Specify the desired algorithm to compare
+        :param str algorithm_to_compare: Specify the desired algorithm to compare, default is the best algorithm
         :param float alpha: Specify the level of significance
         :return: A dataframe of p values obtained for Wilcoxon in concurrence with the selected reference algorithm
         """
 
         if dimension not in DataManifestProvider.DIMENSIONS:
-            raise ValueError('invalid dimension value')
+            raise ValueError('Invalid dimension value')
 
         if len(algorithm_to_compare) == 0:
             algorithm_to_compare = NonParametricTestsProvider.get_best_algorithm(dimension=dimension,
@@ -151,9 +150,9 @@ class NonParametricTestsProvider:
         """
 
         if dimension not in DataManifestProvider.DIMENSIONS:
-            raise ValueError('invalid dimension value')
+            raise ValueError('Invalid dimension value')
         if parameter not in DataManifestProvider.PARAMETERS:
-            raise ValueError('invalid parameter value')
+            raise ValueError('Invalid parameter value')
 
         df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
@@ -186,9 +185,9 @@ class NonParametricTestsProvider:
         """
 
         if dimension not in DataManifestProvider.DIMENSIONS:
-            raise ValueError('invalid dimension value')
+            raise ValueError('Invalid dimension value')
         if parameter not in DataManifestProvider.PARAMETERS:
-            raise ValueError('invalid parameter value')
+            raise ValueError('Invalid parameter value')
 
         df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
@@ -228,9 +227,9 @@ class NonParametricTestsProvider:
         """
 
         if dimension not in DataManifestProvider.DIMENSIONS:
-            raise ValueError('invalid dimension value')
+            raise ValueError('Invalid dimension value')
         if parameter not in DataManifestProvider.PARAMETERS:
-            raise ValueError('invalid parameter value')
+            raise ValueError('Invalid parameter value')
 
         df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
 
@@ -287,9 +286,9 @@ class NonParametricTestsProvider:
         """
 
         if dimension not in DataManifestProvider.DIMENSIONS:
-            raise ValueError('invalid dimension value')
+            raise ValueError('Invalid dimension value')
         if parameter not in DataManifestProvider.PARAMETERS:
-            raise ValueError('invalid parameter value')
+            raise ValueError('Invalid parameter value')
 
         if len(algorithm_to_compare) == 0:
             algorithm_to_compare = NonParametricTestsProvider.get_best_algorithm(dimension=dimension,
@@ -310,7 +309,7 @@ class NonParametricTestsProvider:
         p_values = [unadjusted_p_values]
 
         for method in AdjustedPValueMethods:
-            result = sm.multitest.multipletests(unadjusted_p_values, method=method.value)
+            result = smt.multipletests(unadjusted_p_values, method=method.value)
             p_values.append(result[1])
 
         for count, method in enumerate(p_values):
