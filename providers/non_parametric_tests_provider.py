@@ -84,13 +84,14 @@ class NonParametricTestsProvider:
         return best_algorithm
 
     @staticmethod
-    def wilcoxon_test(dimension=10, parameter=0, algorithm_to_compare=''):
+    def wilcoxon_test(dimension=10, parameter=0, algorithm_to_compare='', alpha=0.05):
         """
         Compare all algorithms with a provided reference algorithm (preferably the best).
 
         :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
         :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
         :param str algorithm_to_compare: Specify the desired algorithm to compare
+        :param float alpha: Specify the level of significance
         :return: A dataframe of p values obtained for Wilcoxon in concurrence with the selected reference algorithm
         """
 
@@ -120,18 +121,22 @@ class NonParametricTestsProvider:
             if column != algorithm_to_compare:
                 wilcoxon_result = wilcoxon(df[column].tolist(), df[algorithm_to_compare].tolist())
 
+                reject = 'X' if wilcoxon_result[1] <= alpha else '✓'
+                reject = f'({reject})'
+
                 algorithm_values.append([
                     wilcoxon_result[1],
+                    reject,
                     (sample_size * (sample_size + 1) / 2) - wilcoxon_result[0],
                     wilcoxon_result[0]
                 ])
             else:
-                algorithm_values.append([1, 0, 0])
+                algorithm_values.append([1, '(✓)', 0, 0])
 
         wilcoxon_result = pd.DataFrame(algorithm_values).T
 
         wilcoxon_result.columns = df.columns
-        wilcoxon_result.index = ['P-Value', 'W+', 'W-']
+        wilcoxon_result.index = ['P-Value', 'Hypothesis', 'W+', 'W-']
 
         return wilcoxon_result
 
@@ -170,12 +175,13 @@ class NonParametricTestsProvider:
         return result
 
     @staticmethod
-    def friedman_test(dimension=10, parameter=0):
+    def friedman_test(dimension=10, parameter=0, alpha=0.05):
         """
         Returns the ranking of each algorithm.
 
         :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
         :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :param float alpha: Specify the level of significance
         :return: A dataframe of ranks for each algorithm
         """
 
@@ -203,7 +209,10 @@ class NonParametricTestsProvider:
 
         friedman = NonParametricTestsProvider.__friedman_test(dimension=dimension, parameter=parameter)
 
-        df['P-Value'] = friedman[1]
+        reject = 'X' if friedman[1] <= alpha else '✓'
+        p_values = f'{friedman[1]}  ({reject})'
+
+        df['P-Value'] = p_values
         df['Statistic'] = friedman[0]
 
         return df
@@ -266,13 +275,14 @@ class NonParametricTestsProvider:
         return results_df
 
     @staticmethod
-    def get_post_hoc_tests(dimension=10, parameter=0, algorithm_to_compare=''):
+    def get_post_hoc_tests(dimension=10, parameter=0, algorithm_to_compare='', alpha=0.05):
         """
         Displays unadjusted p values obtained from wilcoxon in addition with selected correction methods.
 
         :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
         :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
         :param str algorithm_to_compare: Specify the desired algorithm to compare
+        :param float alpha: Specify the level of significance
         :return: A dataframe of p values obtained for Wilcoxon in addition to p values from selected correction methods
         """
 
@@ -305,6 +315,12 @@ class NonParametricTestsProvider:
 
         for count, method in enumerate(p_values):
             p_values[count] = np.insert(method, algorithm_to_compare_index, 1)
+
+        for index, value in enumerate(p_values):
+            p_values[index] = [str(x) for x in p_values[index]]
+            for inner_index, inner_value in enumerate(p_values[index]):
+                reject = 'X' if float(inner_value) <= alpha else '✓'
+                p_values[index][inner_index] = f'{inner_value}  ({reject})'
 
         df = pd.DataFrame(p_values, columns=algorithm_names,
                           index=['unadjusted-p'] + [e.value for e in AdjustedPValueMethods]).T
