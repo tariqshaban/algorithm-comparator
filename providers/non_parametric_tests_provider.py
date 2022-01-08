@@ -137,7 +137,7 @@ class NonParametricTestsProvider:
         wilcoxon_result.columns = df.columns
         wilcoxon_result.index = ['P-Value', 'Hypothesis', 'W+', 'W-']
 
-        return wilcoxon_result
+        return wilcoxon_result.T
 
     @staticmethod
     def __friedman_test(dimension=10, parameter=0):
@@ -290,14 +290,17 @@ class NonParametricTestsProvider:
         if parameter not in DataManifestProvider.PARAMETERS:
             raise ValueError('Invalid parameter value')
 
+        include_versus = True
+
         if len(algorithm_to_compare) == 0:
             algorithm_to_compare = NonParametricTestsProvider.get_best_algorithm(dimension=dimension,
                                                                                  parameter=parameter)
+            include_versus = False
 
         unadjusted_p_values = \
             NonParametricTestsProvider.wilcoxon_test(dimension=dimension,
                                                      parameter=parameter,
-                                                     algorithm_to_compare=algorithm_to_compare).T['P-Value']
+                                                     algorithm_to_compare=algorithm_to_compare)['P-Value']
 
         algorithm_names = unadjusted_p_values.index.to_list()
 
@@ -320,6 +323,9 @@ class NonParametricTestsProvider:
             for inner_index, inner_value in enumerate(p_values[index]):
                 reject = 'X' if float(inner_value) <= alpha else '✓'
                 p_values[index][inner_index] = f'{inner_value}  ({reject})'
+
+        if include_versus:
+            algorithm_names = [x + ' VS ' + algorithm_to_compare for x in algorithm_names]
 
         df = pd.DataFrame(p_values, columns=algorithm_names,
                           index=['unadjusted-p'] + [e.value for e in AdjustedPValueMethods]).T

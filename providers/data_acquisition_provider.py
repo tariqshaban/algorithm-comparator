@@ -195,7 +195,7 @@ class DataAcquisitionProvider:
     @staticmethod
     def __get_algorithms_comparisons(fast_fetch=True):
         """
-        Processes the loaded raw txt file into display a dataframe suitable for algorithms comparisons.
+        Processes the loaded raw txt file into a dataframe suitable for algorithms comparisons.
 
         :param bool fast_fetch: Retrieves algorithms comparisons from a saved snapshot instantly
         :return: A dictionary of dimensions containing a dictionary of parameters

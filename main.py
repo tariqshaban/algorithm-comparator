@@ -15,7 +15,7 @@ DataframeBeautifier.print_console_stream(
 DataframeBeautifier.print_console_stream(
     NonParametricTestsProvider.wilcoxon_test(dimension=10, parameter=8),
     apply_scientific_notation_to_all_columns=False,
-    floating_scientific_notation_rows=['P-Value']
+    floating_scientific_notation_columns=['P-Value']
 )
 
 print(NonParametricTestsProvider.estimate_best_algorithm(dimension=10, parameter=8))
