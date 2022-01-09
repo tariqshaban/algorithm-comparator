@@ -34,6 +34,9 @@ Install tabulate
 Install statsmodels
 `pip install statsmodels`
 
+Install scikit_posthocs
+`pip install scikit_posthocs`
+
 You may need to configure the Python interpreter (depending on the used IDE)
 
 No further configuration is required.

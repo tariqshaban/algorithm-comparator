@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.stats.multitest as smt
 import scikit_posthocs as sp
-from scipy.stats import wilcoxon, friedmanchisquare, stats
+from scipy.stats import wilcoxon, friedmanchisquare
 
 from enums.adjusted_p_value_methods import AdjustedPValueMethods
 from providers.data_acquisition_provider import DataAcquisitionProvider
@@ -27,6 +27,11 @@ class NonParametricTestsProvider:
             Conducts friedman test on each algorithm.
         friedman_test(dimension=10, parameter=0):
             Returns the ranking of each algorithm.
+        __get_nemenyi_post_hoc_test(dimension=10, parameter=0, algorithm_to_compare=''):
+            Displays adjusted p values from Nemenyi test.
+        __get_nemenyi_friedman_post_hoc_test(dimension=10, parameter=0, algorithm_to_compare=''):
+            Displays adjusted p values from Nemenyi-friedman test, used when Friedman p is significant.
+
         get_post_hoc_tests(dimension=10, parameter=0, algorithm_to_compare=''):
             Displays unadjusted p values obtained from wilcoxon in addition with selected correction methods.
     """
@@ -308,10 +313,47 @@ class NonParametricTestsProvider:
         p_values = []
         for algorithm in df.columns:
             if algorithm != algorithm_to_compare:
-                # comparison = [df[algorithm], df[algorithm_to_compare]]
-                # p_values.append(sp.posthoc_nemenyi(comparison)[1][2])
+                comparison = [df[algorithm], df[algorithm_to_compare]]
+                p_values.append(sp.posthoc_nemenyi(comparison)[1][2])
+
+        return p_values
+
+    @staticmethod
+    def __get_nemenyi_friedman_post_hoc_test(dimension=10, parameter=0, algorithm_to_compare=''):
+        """
+        Displays adjusted p values from Nemenyi-friedman test, used when Friedman p is significant.
+
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :param str algorithm_to_compare: Specify the desired algorithm to compare
+        :return: A dataframe of p values obtained for Wilcoxon in addition to p values from selected correction methods
+        """
+
+        if dimension not in DataManifestProvider.DIMENSIONS:
+            raise ValueError('Invalid dimension value')
+        if parameter not in DataManifestProvider.PARAMETERS:
+            raise ValueError('Invalid parameter value')
+
+        if len(algorithm_to_compare) == 0:
+            algorithm_to_compare = NonParametricTestsProvider.get_best_algorithm(dimension=dimension,
+                                                                                 parameter=parameter)
+
+        df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
+
+        for problem in df.index.get_level_values('Problem').unique():
+            for algorithm in df.loc[problem]:
+                df.loc[problem][algorithm]['Std'] = None
+
+        df = df \
+            .reset_index(level=1, drop=True) \
+            .dropna(how='all', axis=0) \
+            .dropna(how='all', axis=1)
+
+        p_values = []
+        for algorithm in df.columns:
+            if algorithm != algorithm_to_compare:
                 comparison = np.array([df[algorithm], df[algorithm_to_compare]]).T
-                p_values.append(sp.posthoc_nemenyi_friedman(comparison)[0][1])  # Use when Friedman is significant
+                p_values.append(sp.posthoc_nemenyi_friedman(comparison)[0][1])
 
         return p_values
 
@@ -357,10 +399,17 @@ class NonParametricTestsProvider:
             result = smt.multipletests(unadjusted_p_values, method=method.value, alpha=alpha)
             p_values.append(result[1])
 
-        p_values.append(NonParametricTestsProvider.__get_nemenyi_post_hoc_test(dimension=dimension,
-                                                                               parameter=parameter,
-                                                                               algorithm_to_compare=algorithm_to_compare
-                                                                               ))
+        p_values.append(NonParametricTestsProvider.
+                        __get_nemenyi_post_hoc_test(dimension=dimension,
+                                                    parameter=parameter,
+                                                    algorithm_to_compare=algorithm_to_compare
+                                                    ))
+
+        p_values.append(NonParametricTestsProvider.
+                        __get_nemenyi_friedman_post_hoc_test(dimension=dimension,
+                                                             parameter=parameter,
+                                                             algorithm_to_compare=algorithm_to_compare
+                                                             ))
 
         for count, method in enumerate(p_values):
             p_values[count] = np.insert(method, algorithm_to_compare_index, 1)
@@ -371,10 +420,22 @@ class NonParametricTestsProvider:
                 reject = 'X' if float(inner_value) <= alpha else '✓'
                 p_values[index][inner_index] = f'{inner_value}  ({reject})'
 
+        verdict = []
+        for algorithm in np.array(p_values).T:
+            reject_count = 0
+            for p_val in algorithm:
+                if '(X)' in p_val:
+                    reject_count += 1
+            verdict.append('(X)' if reject_count >= len(algorithm) / 2 else '(✓)')
+
+        p_values.append(verdict)
+
         if include_versus:
             algorithm_names = [algorithm_to_compare + ' VS ' + x for x in algorithm_names]
 
         df = pd.DataFrame(p_values, columns=algorithm_names,
-                          index=['unadjusted-p'] + [e.value for e in AdjustedPValueMethods] + ['nemenyi']).T
+                          index=['unadjusted-p'] +
+                                [e.value for e in AdjustedPValueMethods] +
+                                ['nemenyi', 'nemenyi-friedman', 'verdict']).T
 
         return df
