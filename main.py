@@ -48,6 +48,8 @@ PlotsProvider.plot_algorithm_comparison_box(dimension=10, parameter=8)
 PlotsProvider.plot_algorithm_performance_fluctuation(parameter=8)
 PlotsProvider.plot_algorithm_performance_fluctuation(parameter=8, normalize=False)
 
+PlotsProvider.plot_best_algorithms()
+
 #########################################################
 #########################################################
 

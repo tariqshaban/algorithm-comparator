@@ -19,10 +19,10 @@ Install numpy
 Install pandas
 `pip install pandas`
 
-install matplotlib
+Install matplotlib
 `pip install matplotlib`
 
-install seaborn
+Install seaborn
 `pip install seaborn`
 
 Install scipy
@@ -44,11 +44,13 @@ No further configuration is required.
 
 Project Structure
 ------------
+
     ├── README.md                           <- The top-level README for developers using this project.
     │
     ├── assets
     │   │── algorithms                      <- Storing the provided algorithm's files.
-    │   └── cached_instances                <- Storing processed tables.
+    │   │── cached_instances                <- Storing processed tables.
+    │   └── images                          <- Storing readme image files.
     │
     ├── enums
     │   └── adjusted_p_value_methods        <- Enumerate adjusted p-value methods.
@@ -67,13 +69,14 @@ Project Structure
 
 Data Exploration
 ------------
+
 Data obtained from the CEC-2014 are stored in `assets/algorithms`, it consists of the following:
 
 * A collection of folders, each folder denotes an algorithm.
 * Each algorithm contains a collection of textual files, each file denotes a pair of problem/dimension
 * Each problem/dimension pair contains a table, columns denote the iteration and rows denote the parameter
-* Each cell denotes the difference between the actual and the optimal result for the respected 
-algorithm/dimension/problem/parameter/iteration (the less the value is, the better)
+* Each cell denotes the difference between the actual and the optimal result for the respected
+  algorithm/dimension/problem/parameter/iteration (the less the value is, the better)
 
 Refer to the following tree for a better understanding
 
@@ -100,15 +103,15 @@ Refer to the following tree for a better understanding
         │── DE_b6e6rlwithrestart
         │── ...
         └── UMOEAS
-    
+
 Preprocessing
 ------------
 Data received from the CEC-2014 contains unnecessary additional files which should be removed.
 
-Raw data from the textual files did not seem to require any preprocessing, since the data is assumed to be correct,
-e.g. you cannot confirm that a difference of 3.2987*10^8 is considered as an entry error or that the algorithm did
-actually obtain this result under certain circumstances. The only preprocessing that could have been done is to remove
-any  non-positive values, but there was none already.
+Raw data from the textual files did not seem to require any preprocessing, since the data is assumed to be correct, e.g.
+you cannot confirm that a difference of 3.2987*10^8 is considered as an entry error or that the algorithm did actually
+obtain this result under certain circumstances. The only preprocessing that could have been done is to remove any
+non-positive values, but there was none already.
 
 Inspection
 ------------
@@ -118,14 +121,11 @@ Inspection
 
 > ![plot_algorithm_normality_histogram.png](assets/images/plots/normality/plot_algorithm_normality_histogram.png)
 > <br>
-It can be clearly indicated from this figure that the distribution of this algorithm is not normal, hence we should
-conduct non-parametric tests.
+It can be clearly indicated from this figure that the distribution of this algorithm is not normal, hence we should conduct non-parametric tests.
 
 > ![plot_algorithm_normality_histogram.png](assets/images/plots/normality/plot_algorithm_normality_qq.png)
 > <br>
-The qq plot (which shows the distribution of the data against the expected normal distribution), should have the 
-observations lie approximately on a straight line to consider the distribution normal. The figure also indicate that this not 
-a normal distribution.
+The qq plot (which shows the distribution of the data against the expected normal distribution), should have the observations lie approximately on a straight line to consider the distribution normal. The figure also indicate that this not a normal distribution.
 
 </details>
 
@@ -136,16 +136,11 @@ a normal distribution.
 
 > ![plot_algorithm_comparison_bar.png](assets/images/plots/comparison/plot_algorithm_comparison_bar.png)
 > <br>
-For a given dimension and parameter, we can estimate the best algorithm by using the mean value, in this plot,
-we can conclude that UMOEAS is the best algorithm, since it has the least difference to the optimal result. However,
-the best algorithm might be different for each dimension and parameter.
+For a given dimension and parameter, we can estimate the best algorithm by using the mean value, in this plot, we can conclude that UMOEAS is the best algorithm, since it has the least difference to the optimal result. However, the best algorithm might be different for each dimension and parameter.
 
 > ![plot_algorithm_comparison_box.png](assets/images/plots/comparison/plot_algorithm_comparison_box.png)
 > <br>
-To further find the outliers in each algorithm distribution, we used the box plot, having a whisker which converges to 
-the zero highly indicate that such algorithm might be the best. The best algorithm usually doesn't have outliers, 
-or it is not very distant from the maximum whisker, we can estimate from the plot that UMOEAS is most likely the best 
-algorithm since it has the lowest median (central horizontal line in the box), as well as the Q1 is relatively low.
+To further find the outliers in each algorithm distribution, we used the box plot, having a whisker which converges to the zero highly indicate that such algorithm might be the best. The best algorithm usually doesn't have outliers, or it is not very distant from the maximum whisker, we can estimate from the plot that UMOEAS is most likely the best algorithm since it has the lowest median (central horizontal line in the box), as well as the Q1 is relatively low.
 
 </details>
 
@@ -156,15 +151,11 @@ algorithm since it has the lowest median (central horizontal line in the box), a
 
 > ![plot_algorithm_performance_fluctuation.png](assets/images/plots/performance/plot_algorithm_performance_fluctuation.png)
 > <br>
-Display the performance for algorithm for a given parameter while escalating the dimensionality, some algorithms
-surprisingly obtain better results when increasing the dimensionality, perhaps the algorithm is optimized to run on
-a higher, demanding dimensions?
+Display the performance for algorithm for a given parameter while escalating the dimensionality, some algorithms surprisingly obtain better results when increasing the dimensionality, perhaps the algorithm is optimized to run on a higher, demanding dimensions?
 
 > ![plot_algorithm_performance_fluctuation_normalized.png](assets/images/plots/performance/plot_algorithm_performance_fluctuation_normalized.png)
 > <br>
-The previous figure has been normalized to further facilitate the interpretation of the performance, notice that some
-algorithms doesn't have any performance indicators at 100D, this is because that the raw data didn't record any
-observation that correlated the algorithm with the dimension.
+The previous figure has been normalized to further facilitate the interpretation of the performance, notice that some algorithms doesn't have any performance indicators at 100D, this is because that the raw data didn't record any observation that correlated the algorithm with the dimension.
 
 </details>
 
@@ -173,21 +164,22 @@ Tests / Analysis
 
 ### Loading textual files
 
-The first step was to load the raw txt file into a nested dictionary and tag the required information as the key, while 
+The first step was to load the raw txt file into a nested dictionary and tag the required information as the key, while
 the textual content as the value in a dataframe format.
 
 ### Refactoring the loaded nested dictionary
 
 Then nested dictionary was refactored to the following manner:
+
 * A dictionary consisting of:
-  * Key: Dimension name 
-  * Value: A dictionary consisting of:
-    * Key: Parameter name
-    * Value: A dataframe consisting of:
-      * Columns: Algorithm Name
-      * Row: Problem number
-      * Cell: Consists of mean and standard deviation of the provided 51 iteration
-  
+    * Key: Dimension name
+    * Value: A dictionary consisting of:
+        * Key: Parameter name
+        * Value: A dataframe consisting of:
+            * Columns: Algorithm Name
+            * Row: Problem number
+            * Cell: Consists of mean and standard deviation of the provided 51 iteration
+
 <ins>**Note that the parameters follow zero based indexing**, 0 denotes the first line in the txt file.</ins>
 
 This ensures that the data is suitable for comparisons and tests, standard deviation is nullified if not needed.
@@ -196,7 +188,7 @@ The inspections above became possible after this step.
 
 ### Appending w/t/l to the refactored dataframe
 
-Identifying the algorithm with the highest wins and ties can give a broad indication that this might be the best 
+Identifying the algorithm with the highest wins and ties can give a broad indication that this might be the best
 algorithm.
 
 <details>
@@ -275,9 +267,10 @@ Parameter: 8
 ### Identifying the best algorithm based on a given dimension and parameter
 
 There are two approaches to tackle such step:
+
 * Calculate the mean directly for all problems by algorithm from the table & returning the algorithm with the least mean
-* Calculate the ranks (as in Friedman test) for each problem and then calculate the mean for all problems by algorithm 
-from the table & returning the algorithm with the least ranked mean
+* Calculate the ranks (as in Friedman test) for each problem and then calculate the mean for all problems by algorithm
+  from the table & returning the algorithm with the least ranked mean
 
 The second approach is used by default.
 
@@ -377,11 +370,13 @@ The purpose of post hoc tests is to determine exactly which treatment conditions
 providing an adjusted p-values.
 
 we will be using the following post-hoc tests
+
 * Bonferroni
 * Holm
 * Simes-Hochberg
 * Hommel
 * Nemenyi
+* Nemenyi-Friedman
 
 Notice that some algorithms were considered significantly different, but after inspecting the majority of the adjusted
 p-values, it indicates that it there was no significant difference.
@@ -393,26 +388,70 @@ Dimension: 10
 <br>
 Parameter: 8
 
-|                      | unadjusted-p   | bonferroni     | holm           | simes-hochberg   | hommel         | nemenyi        |
-|----------------------|----------------|----------------|----------------|------------------|----------------|----------------|
-| b3e3pbest            | 1.7344e-06 (X) | 2.7750e-05 (X) | 2.7750e-05 (X) | 2.4282e-05 (X)   | 2.1194e-05 (X) | 1.0000e-03 (X) |
-| CMLSP                | 2.5576e-03 (X) | 4.0922e-02 (X) | 1.0231e-02 (X) | 1.0171e-02 (X)   | 7.6729e-03 (X) | 1.9099e-03 (X) |
-| DE_b6e6rlwithrestart | 2.9770e-02 (X) | 4.7633e-01 (✓) | 5.9541e-02 (✓) | 5.9541e-02 (✓)   | 5.9541e-02 (✓) | 1.0035e-01 (✓) |
-| FCDE                 | 1.7344e-06 (X) | 2.7750e-05 (X) | 2.7750e-05 (X) | 2.4282e-05 (X)   | 2.1194e-05 (X) | 1.0000e-03 (X) |
-| FERDE                | 1.9209e-06 (X) | 3.0735e-05 (X) | 2.7750e-05 (X) | 2.4972e-05 (X)   | 2.3051e-05 (X) | 1.0000e-03 (X) |
-| FWA-DM               | 5.2165e-06 (X) | 8.3464e-05 (X) | 5.7381e-05 (X) | 5.7381e-05 (X)   | 5.2165e-05 (X) | 1.0000e-03 (X) |
-| GaAPADE              | 1.7988e-05 (X) | 2.8782e-04 (X) | 1.6190e-04 (X) | 1.6190e-04 (X)   | 1.4391e-04 (X) | 1.0000e-03 (X) |
-| L-SHADE              | 2.0603e-05 (X) | 3.2964e-04 (X) | 1.6482e-04 (X) | 1.6482e-04 (X)   | 1.6482e-04 (X) | 1.0000e-03 (X) |
-| MVMO                 | 6.7328e-01 (✓) | 1.0000e+00 (✓) | 6.7328e-01 (✓) | 6.7328e-01 (✓)   | 6.7328e-01 (✓) | 2.0124e-01 (✓) |
-| NRGA                 | 1.7344e-06 (X) | 2.7750e-05 (X) | 2.7750e-05 (X) | 2.4282e-05 (X)   | 2.1194e-05 (X) | 1.0000e-03 (X) |
-| OptBees              | 1.0570e-04 (X) | 1.6911e-03 (X) | 7.3987e-04 (X) | 7.3987e-04 (X)   | 7.3987e-04 (X) | 1.0000e-03 (X) |
-| POBL_ADE             | 4.2857e-06 (X) | 6.8571e-05 (X) | 5.1428e-05 (X) | 5.1428e-05 (X)   | 4.2857e-05 (X) | 1.0000e-03 (X) |
-| rmalschcma           | 3.3902e-03 (X) | 5.4244e-02 (✓) | 1.0231e-02 (X) | 1.0171e-02 (X)   | 1.0171e-02 (X) | 1.9099e-03 (X) |
-| RSDE                 | 6.5213e-06 (X) | 1.0434e-04 (X) | 6.5213e-05 (X) | 6.5213e-05 (X)   | 6.5213e-05 (X) | 1.0000e-03 (X) |
-| SOO                  | 1.3820e-03 (X) | 2.2113e-02 (X) | 8.2922e-03 (X) | 7.9635e-03 (X)   | 5.6504e-03 (X) | 1.0000e-03 (X) |
-| SOO+BOBYQA           | 1.5927e-03 (X) | 2.5483e-02 (X) | 8.2922e-03 (X) | 7.9635e-03 (X)   | 6.3708e-03 (X) | 1.0140e-03 (X) |
-| UMOEAS               | 1.0000e+00 (✓) | 1.0000e+00 (✓) | 1.0000e+00 (✓) | 1.0000e+00 (✓)   | 1.0000e+00 (✓) | 1.0000e+00 (✓) |
+|                      | unadjusted-p   | bonferroni     | holm           | simes-hochberg   | hommel         | nemenyi        | nemenyi-friedman   | verdict   |
+|----------------------|----------------|----------------|----------------|------------------|----------------|----------------|--------------------|-----------|
+| b3e3pbest            | 1.7344e-06 (X) | 2.7750e-05 (X) | 2.7750e-05 (X) | 2.4282e-05 (X)   | 2.1194e-05 (X) | 6.1459e-05 (X) | 1.0000e-03 (X)     | (X)       |
+| CMLSP                | 2.5576e-03 (X) | 4.0922e-02 (X) | 1.0231e-02 (X) | 1.0171e-02 (X)   | 7.6729e-03 (X) | 1.6005e-01 (✓) | 1.9099e-03 (X)     | (X)       |
+| DE_b6e6rlwithrestart | 2.9770e-02 (X) | 4.7633e-01 (✓) | 5.9541e-02 (✓) | 5.9541e-02 (✓)   | 5.9541e-02 (✓) | 6.8953e-01 (✓) | 1.0035e-01 (✓)     | (✓)       |
+| FCDE                 | 1.7344e-06 (X) | 2.7750e-05 (X) | 2.7750e-05 (X) | 2.4282e-05 (X)   | 2.1194e-05 (X) | 1.8330e-04 (X) | 1.0000e-03 (X)     | (X)       |
+| FERDE                | 1.9209e-06 (X) | 3.0735e-05 (X) | 2.7750e-05 (X) | 2.4972e-05 (X)   | 2.3051e-05 (X) | 9.4760e-05 (X) | 1.0000e-03 (X)     | (X)       |
+| FWA-DM               | 5.2165e-06 (X) | 8.3464e-05 (X) | 5.7381e-05 (X) | 5.7381e-05 (X)   | 5.2165e-05 (X) | 5.4575e-02 (✓) | 1.0000e-03 (X)     | (X)       |
+| GaAPADE              | 1.7988e-05 (X) | 2.8782e-04 (X) | 1.6190e-04 (X) | 1.6190e-04 (X)   | 1.4391e-04 (X) | 2.8040e-01 (✓) | 1.0000e-03 (X)     | (X)       |
+| L-SHADE              | 2.0603e-05 (X) | 3.2964e-04 (X) | 1.6482e-04 (X) | 1.6482e-04 (X)   | 1.6482e-04 (X) | 3.4367e-01 (✓) | 1.0000e-03 (X)     | (X)       |
+| MVMO                 | 6.7328e-01 (✓) | 1.0000e+00 (✓) | 6.7328e-01 (✓) | 6.7328e-01 (✓)   | 6.7328e-01 (✓) | 4.2032e-01 (✓) | 2.0124e-01 (✓)     | (✓)       |
+| NRGA                 | 1.7344e-06 (X) | 2.7750e-05 (X) | 2.7750e-05 (X) | 2.4282e-05 (X)   | 2.1194e-05 (X) | 3.6588e-04 (X) | 1.0000e-03 (X)     | (X)       |
+| OptBees              | 1.0570e-04 (X) | 1.6911e-03 (X) | 7.3987e-04 (X) | 7.3987e-04 (X)   | 7.3987e-04 (X) | 3.1035e-03 (X) | 1.0000e-03 (X)     | (X)       |
+| POBL_ADE             | 4.2857e-06 (X) | 6.8571e-05 (X) | 5.1428e-05 (X) | 5.1428e-05 (X)   | 4.2857e-05 (X) | 4.5255e-03 (X) | 1.0000e-03 (X)     | (X)       |
+| rmalschcma           | 3.3902e-03 (X) | 5.4244e-02 (✓) | 1.0231e-02 (X) | 1.0171e-02 (X)   | 1.0171e-02 (X) | 2.2516e-01 (✓) | 1.9099e-03 (X)     | (X)       |
+| RSDE                 | 6.5213e-06 (X) | 1.0434e-04 (X) | 6.5213e-05 (X) | 6.5213e-05 (X)   | 6.5213e-05 (X) | 1.4512e-01 (✓) | 1.0000e-03 (X)     | (X)       |
+| SOO                  | 1.3820e-03 (X) | 2.2113e-02 (X) | 8.2922e-03 (X) | 7.9635e-03 (X)   | 5.6504e-03 (X) | 4.9509e-03 (X) | 1.0000e-03 (X)     | (X)       |
+| SOO+BOBYQA           | 1.5927e-03 (X) | 2.5483e-02 (X) | 8.2922e-03 (X) | 7.9635e-03 (X)   | 6.3708e-03 (X) | 1.2949e-02 (X) | 1.0140e-03 (X)     | (X)       |
+| UMOEAS               | 1.0000e+00 (✓) | 1.0000e+00 (✓) | 1.0000e+00 (✓) | 1.0000e+00 (✓)   | 1.0000e+00 (✓) | 1.0000e+00 (✓) | 1.0000e+00 (✓)     | (✓)       |
 
 </details>
+
+
+Findings
+------------
+
+After conducting the tests and followed the above steps, we conclude the following:
+
+* Some algorithms do not have observations in 100D.
+* The data does not represent the normal distribution, non parametric tests is required.
+* The best algorithm may differ when changing the dimension and/or parameter.
+* The algorithm that has the following characteristics is most likely the best algorithm.
+    * Relatively the lowest mean.
+    * Relatively the lowest rank (correlated with the previous point).
+    * The whisker converges to zero.
+    * Little to no outliers.
+    * If any outliers exist, it is not distant from the maximum whisker.
+* Some algorithms perform terribly when the dimension increases.
+* Other algorithms adapt to higher dimensionality and perform surprisingly better (optimized to tackle the 'curse of
+  dimensionality').
+* Some algorithms scored 0/0/30 in the w/t/l comparison, this might change upon modifying the dimension and the
+  parameter.
+* Scoring 0/0/30 does not necessarily mean it's a bad algorithm, perhaps it secured the second place in all problems.
+* Some algorithms came close to the p-value of the best algorithm and found insignificant difference with it, while some
+  had massive significant difference.
+* The p-value of Friedman test always converges to zero, no matter the provided dimension and parameter.
+* Nemenyi-Friedman did not have similar values with the other post-hoc tests, but it was mostly in concurrence with the
+  majority.
+* Nemenyi-Friedman is preferred over Nemenyi when there is a significant difference in the groups (which is true in this
+  case), hence, raw Nemenyi should not be trusted, refer to the following quote from the
+  `scikit_posthocs.posthoc_nemenyi_friedman` documentation.
+
+  > Calculate pairwise comparisons using Nemenyi post hoc test for unreplicated blocked data. This test is usually conducted post hoc if significant results of the Friedman’s test are obtained.
+
+Upon utilizing the created methods, we identified the following algorithms as the best, by plotting the following
+figures:
+
+> ![plot_best_algorithms.png](assets/images/plots/performance/plot_best_algorithms.png)
+> <br>
+Identify the best algorithm per dimension by observing the algorithm with the highest wins for the respected dimension
+(color coded).
+
+> ![plot_best_algorithms_stacked.png](assets/images/plots/performance/plot_best_algorithms_stacked.png)
+> <br>
+This figure represents the same data as the previous plot, but the dataframe is transposed and the bars are stacked, best suited to view each algorithm share as the best algorithm for each dimension.
 
 --------

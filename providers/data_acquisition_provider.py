@@ -207,6 +207,8 @@ class DataAcquisitionProvider:
                 DataAcquisitionProvider.__get_cached_algorithms_comparisons()
             return
 
+        print('Reordering Dataframe, this is a one time process...')
+
         dataframes = {}
         processed = 0
 
@@ -236,7 +238,6 @@ class DataAcquisitionProvider:
         """
 
         if DataAcquisitionProvider.__algorithms_comparisons is None:
-            print('Reordering Dataframe, this is a one time process...')
             DataAcquisitionProvider.__get_algorithms_comparisons(fast_fetch=fast_fetch)
 
         return copy.deepcopy(DataAcquisitionProvider.__algorithms_comparisons)
