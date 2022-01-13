@@ -5,6 +5,10 @@ class DataframeBeautifier:
     """
     Static methods for beautifying the output of the dataframe.
 
+    Attributes
+    ----------
+        __omitted_symbols           Specify the symbols which are postpended to floating point numbers
+
     Methods
     -------
         __is_number(s):
@@ -23,6 +27,8 @@ class DataframeBeautifier:
             Beautifying the output of the dataframe for markup languages (specifically GitHub readme file).
     """
 
+    __omitted_symbols = ['(X)', '(✓)', '(w)', '(t)', '(l)']
+
     @staticmethod
     def __is_number(s):
         """
@@ -36,7 +42,10 @@ class DataframeBeautifier:
             return True
 
         try:
-            float(s.replace('(X)', '').replace('(✓)', ''))
+            for symbol in DataframeBeautifier.__omitted_symbols:
+                s = s.replace(symbol, '')
+
+            float(s)
             return True
         except ValueError:
             return False
@@ -55,11 +64,13 @@ class DataframeBeautifier:
         append = ''
 
         if isinstance(s, str):
-            if '(✓)' in s:
-                append = ' (✓)'
-            elif '(X)' in s:
-                append = ' (X)'
-            s = s.replace('(X)', '').replace('(✓)', '')
+            for symbol in DataframeBeautifier.__omitted_symbols:
+                if symbol in s:
+                    append = ' ' + symbol
+                    break
+
+            for symbol in DataframeBeautifier.__omitted_symbols:
+                s = s.replace(symbol, '')
 
         scientific_precision = '{:.' + str(max_digits) + 'e}'
         floating_precision = '{:.' + str(max_digits) + 'g}'

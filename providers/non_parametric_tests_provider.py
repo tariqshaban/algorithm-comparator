@@ -1,11 +1,12 @@
 from collections import defaultdict
 
+import deprecation
 import numpy as np
 import pandas as pd
 import statsmodels.stats.multitest as smt
 import scikit_posthocs as sp
-from scipy.stats import wilcoxon, friedmanchisquare
-
+from scikit_posthocs import posthoc_nemenyi_friedman
+from scipy.stats import wilcoxon, friedmanchisquare, mannwhitneyu
 from enums.adjusted_p_value_methods import AdjustedPValueMethods
 from providers.data_acquisition_provider import DataAcquisitionProvider
 from providers.data_manifest_provider import DataManifestProvider
@@ -223,6 +224,7 @@ class NonParametricTestsProvider:
         return df
 
     @staticmethod
+    @deprecation.deprecated(details="Use the get_algorithms_comparisons_wtl_wilcoxon function instead")
     def get_algorithms_comparisons_wtl(dimension=10, parameter=0):
         """
         Adds win-tie-lose attribute with the get_algorithms_comparisons method.
@@ -276,6 +278,82 @@ class NonParametricTestsProvider:
 
         results_df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter] \
             .append(pd.DataFrame({'w/t/l': results_str}, index=df.columns).T)
+
+        return results_df
+
+    @staticmethod
+    def get_algorithms_comparisons_wtl_mannwhitneyu(dimension=10, parameter=0, alpha=0.05):
+        """
+        Adds win-tie-lose attribute with the get_algorithms_comparisons method using Mann–Whitney U test
+        and utilizing the raw iterations, does not respect caching.
+
+        :param int dimension: Specify the desired dimension (must be within 'DataManifestProvider.DIMENSIONS')
+        :param int parameter: Specify the desired parameter (must be within 'DataManifestProvider.PARAMETERS')
+        :param float alpha: Specify the level of significance
+        :return: A dataframe of Measurements for each algorithm and problem with a w/t/l for each algorithm
+        """
+
+        if dimension not in DataManifestProvider.DIMENSIONS:
+            raise ValueError('Invalid dimension value')
+        if parameter not in DataManifestProvider.PARAMETERS:
+            raise ValueError('Invalid parameter value')
+
+        df = DataAcquisitionProvider.get_algorithms_comparisons()[dimension][parameter]
+
+        for problem in df.index.get_level_values('Problem').unique():
+            for algorithm in df.loc[problem]:
+                df.loc[problem][algorithm]['Std'] = None
+
+        df = df \
+            .reset_index(level=1, drop=True) \
+            .dropna(how='all', axis=0) \
+            .dropna(how='all', axis=1)
+
+        df.index.name = 'Algorithm'
+
+        df = df.astype('str')
+
+        total_result = defaultdict(dict)
+
+        raw_df = DataAcquisitionProvider.get_algorithms_raw()
+
+        best_algorithm = NonParametricTestsProvider.get_best_algorithm(dimension=dimension, parameter=parameter)
+
+        for rowIndex, row in df.iterrows():
+            for columnIndex, value in row.items():
+
+                problem = str(rowIndex)
+                algorithm = columnIndex
+                dimension = str(dimension)
+                parameter = parameter
+
+                best_algorithm_iterations = raw_df[algorithm][problem][str(dimension)].loc[parameter]
+                this_algorithm_iterations = raw_df[best_algorithm][problem][str(dimension)].loc[parameter]
+
+                best_algorithm_iterations = best_algorithm_iterations.drop(labels=['mean', 'std'])
+                this_algorithm_iterations = this_algorithm_iterations.drop(labels=['mean', 'std'])
+
+                p_value = mannwhitneyu(best_algorithm_iterations,
+                                       this_algorithm_iterations)[1]
+
+                if p_value <= alpha:
+                    if value < row[best_algorithm]:
+                        df.at[rowIndex, columnIndex] = str(df[columnIndex][rowIndex]) + ' (w)'
+                        total_result[columnIndex]['win'] = total_result[columnIndex].get('win', 0) + 1
+                    else:
+                        df.at[rowIndex, columnIndex] = str(df[columnIndex][rowIndex]) + ' (l)'
+                        total_result[columnIndex]['lose'] = total_result[columnIndex].get('lose', 0) + 1
+                else:
+                    df.at[rowIndex, columnIndex] = str(df[columnIndex][rowIndex]) + ' (t)'
+                    total_result[columnIndex]['draw'] = total_result[columnIndex].get('draw', 0) + 1
+
+        results_str = []
+        for key, value in total_result.items():
+            results_str.append(f'{value.get("win", 0)}/'
+                               f'{value.get("draw", 0)}/'
+                               f'{value.get("lose", 0)}')
+
+        results_df = df.append(pd.DataFrame({'w/t/l': results_str}, index=df.columns).T)
 
         return results_df
 
@@ -353,7 +431,7 @@ class NonParametricTestsProvider:
         for algorithm in df.columns:
             if algorithm != algorithm_to_compare:
                 comparison = np.array([df[algorithm], df[algorithm_to_compare]]).T
-                p_values.append(sp.posthoc_nemenyi_friedman(comparison)[0][1])
+                p_values.append(posthoc_nemenyi_friedman(comparison)[0][1])
 
         return p_values
 

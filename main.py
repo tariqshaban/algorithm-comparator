@@ -10,7 +10,13 @@ print('--------------------------------------------------')
 # DataAcquisitionProvider.get_algorithms_comparisons()
 
 DataframeBeautifier.print_console_stream(
-    NonParametricTestsProvider.get_algorithms_comparisons_wtl(dimension=10, parameter=8))
+    NonParametricTestsProvider.get_algorithms_comparisons_wtl(dimension=10, parameter=8)
+)
+
+DataframeBeautifier.print_console_stream(
+    NonParametricTestsProvider.get_algorithms_comparisons_wtl_mannwhitneyu(dimension=10, parameter=8)
+)
+
 
 DataframeBeautifier.print_console_stream(
     NonParametricTestsProvider.wilcoxon_test(dimension=10, parameter=8),
@@ -33,6 +39,10 @@ DataframeBeautifier.print_console_stream(
     apply_scientific_notation_to_all_columns=False,
     floating_scientific_notation_columns=['P-Value', 'Statistic'],
     transpose=True
+)
+
+DataframeBeautifier.print_console_stream(
+    NonParametricTestsProvider.get_post_hoc_tests(dimension=10, parameter=8, algorithm_to_compare='GaAPADE')
 )
 
 DataframeBeautifier.print_console_stream(
