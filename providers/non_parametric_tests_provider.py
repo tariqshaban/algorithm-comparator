@@ -28,6 +28,11 @@ class NonParametricTestsProvider:
             Conducts friedman test on each algorithm.
         friedman_test(dimension=10, parameter=0):
             Returns the ranking of each algorithm.
+        get_algorithms_comparisons_wtl(dimension=10, parameter=0):
+            Adds win-tie-lose attribute with the get_algorithms_comparisons method.
+        get_algorithms_comparisons_wtl_mannwhitneyu(dimension=10, parameter=0, alpha=0.05):
+            Adds win-tie-lose attribute with the get_algorithms_comparisons method using Mann–Whitney U test
+            and utilizing the raw iterations, does not respect caching.
         __get_nemenyi_post_hoc_test(dimension=10, parameter=0, algorithm_to_compare=''):
             Displays adjusted p values from Nemenyi test.
         __get_nemenyi_friedman_post_hoc_test(dimension=10, parameter=0, algorithm_to_compare=''):
@@ -38,6 +43,7 @@ class NonParametricTestsProvider:
     """
 
     @staticmethod
+    @deprecation.deprecated(details="Use the get_best_algorithm function instead")
     def estimate_best_algorithm(dimension=10, parameter=0):
         """
         Provides a broad estimation of the best algorithm by calculating the mean for a given dimension.
@@ -127,7 +133,7 @@ class NonParametricTestsProvider:
             if column != algorithm_to_compare:
                 wilcoxon_result = wilcoxon(df[column].tolist(), df[algorithm_to_compare].tolist())
 
-                reject = 'X' if wilcoxon_result[1] <= alpha else '✓'
+                reject = 'X' if wilcoxon_result[1] < alpha else '✓'
                 reject = f'({reject})'
 
                 algorithm_values.append([
@@ -215,7 +221,7 @@ class NonParametricTestsProvider:
 
         friedman = NonParametricTestsProvider.__friedman_test(dimension=dimension, parameter=parameter)
 
-        reject = 'X' if friedman[1] <= alpha else '✓'
+        reject = 'X' if friedman[1] < alpha else '✓'
         p_values = f'{friedman[1]}  ({reject})'
 
         df['P-Value'] = p_values
@@ -333,10 +339,13 @@ class NonParametricTestsProvider:
                 best_algorithm_iterations = best_algorithm_iterations.drop(labels=['mean', 'std'])
                 this_algorithm_iterations = this_algorithm_iterations.drop(labels=['mean', 'std'])
 
-                p_value = mannwhitneyu(best_algorithm_iterations,
-                                       this_algorithm_iterations)[1]
+                if best_algorithm_iterations.equals(this_algorithm_iterations):
+                    p_value = 1
+                else:
+                    p_value = mannwhitneyu(best_algorithm_iterations,
+                                           this_algorithm_iterations)[1]
 
-                if p_value <= alpha:
+                if p_value < alpha:
                     if value < row[best_algorithm]:
                         df.at[rowIndex, columnIndex] = str(df[columnIndex][rowIndex]) + ' (w)'
                         total_result[columnIndex]['win'] = total_result[columnIndex].get('win', 0) + 1
@@ -495,7 +504,7 @@ class NonParametricTestsProvider:
         for index, value in enumerate(p_values):
             p_values[index] = [str(x) for x in p_values[index]]
             for inner_index, inner_value in enumerate(p_values[index]):
-                reject = 'X' if float(inner_value) <= alpha else '✓'
+                reject = 'X' if float(inner_value) < alpha else '✓'
                 p_values[index][inner_index] = f'{inner_value}  ({reject})'
 
         verdict = []

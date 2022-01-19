@@ -62,7 +62,7 @@ class PlotsProvider:
 
         p_value = stats.normaltest(df)[1]
 
-        reject = 'REJECTED' if p_value <= alpha else 'FAILED TO REJECT'
+        reject = 'REJECTED' if p_value < alpha else 'FAILED TO REJECT'
 
         df.plot(kind='hist',
                 title=f'{algorithm} Distribution, Dimension: {dimension} | Parameter: {parameter}'
@@ -103,7 +103,7 @@ class PlotsProvider:
 
         p_value = stats.normaltest(df)[1]
 
-        reject = 'REJECTED' if p_value <= alpha else 'FAILED TO REJECT'
+        reject = 'REJECTED' if p_value < alpha else 'FAILED TO REJECT'
 
         with mpl.rc_context():
             mpl.rc("figure", figsize=(12, 8))

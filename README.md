@@ -44,7 +44,6 @@ You may need to configure the Python interpreter (depending on the used IDE)
 
 No further configuration is required.
 
-
 Project Structure
 ------------
 
@@ -106,6 +105,28 @@ Refer to the following tree for a better understanding
         │── DE_b6e6rlwithrestart
         │── ...
         └── UMOEAS
+
+Customizing Input Values
+------------
+If you wish to run the program and show results based on your own data, you should perform the following steps:
+
+* Ensure that your input values has the exact same structure as in the provided `assets/algorithms` folder, by
+  achieving the following steps:
+  * The dimensions must be within **[10, 30, 50, 100]**. If need be, modify the `providers/data_manifest_provider.py` `DIMENSIONS` variable
+  * The parameters must be exactly **14**. If need be, modify the `providers/data_manifest_provider.py` `PARAMETERS` variable
+  * The folders must follow the exact structural requirement as follows:
+    * List of folders (denoting the algorithms)
+    * These folders contain text files that follow this format: `ALGO-NAME_PROBLEM_DIMENSION`
+    * These files contain a tabular form denoting iterations as columns and the parameters as the rows
+* Call `DataAcquisitionProvider.set_algorithms_raw_directory('MY_PATH')` from the `main.py`
+* Delete the contents of the `assets/cached_instances` folder to prepare for a new cached snapshot (Optional - Apply
+when elevated permissions are required)
+* Call `DataAcquisitionProvider.cache_algorithms_comparisons()` from `main.py`
+* Verify that the cached instances are generated, by observing `assets/cached_insances`
+
+**Note:** The program will not function if you delete the `assets/cached_instances` folder without providing a proper
+snapshot (you must call `DataAcquisitionProvider.cache_algorithms_comparisons()` from `main.py` before invoking any
+method to automatically generate such snapshot)
 
 Preprocessing
 ------------

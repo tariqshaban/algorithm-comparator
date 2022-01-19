@@ -1,5 +1,7 @@
 import copy
 import os
+import shutil
+import subprocess
 from datetime import datetime
 
 import numpy as np
@@ -15,13 +17,16 @@ class DataAcquisitionProvider:
 
     Attributes
     ----------
+        __algorithms_raw_directory  Specify the directory from where to read the assets from
         __algorithms_raw            Acts as a cache for storing raw algorithm input
-        __algorithms_comparisons      Acts as a cache for storing reordered algorithm input
+        __algorithms_comparisons    Acts as a cache for storing reordered algorithm input
 
     Methods
     -------
+        set_algorithms_raw_directory(directory):
+            Specify the directory from where to read the assets from
         __get_algorithms_raw():
-            Loads raw txt algorithms from assets/algorithms directory in a dataframe,
+            Loads raw txt algorithms from __algorithms_raw_directory directory in a dataframe,
             while adding the mean and the standard deviation in the process.
         get_algorithms_raw():
             Calls __get_algorithms_raw if __algorithms_raw is None, otherwise,
@@ -39,13 +44,22 @@ class DataAcquisitionProvider:
             it retrieves __algorithms_comparisons immediately.
     """
 
+    __algorithms_raw_directory = 'assets/algorithms'
     __algorithms_raw = None
     __algorithms_comparisons = None
 
     @staticmethod
+    def set_algorithms_raw_directory(directory):
+        """
+        Specify the directory from where to read the assets from
+        """
+        if directory != '':
+            DataAcquisitionProvider.__algorithms_raw_directory = directory
+
+    @staticmethod
     def __get_algorithms_raw():
         """
-        Loads raw txt algorithms from assets/algorithms directory in a dataframe,
+        Loads raw txt algorithms from __algorithms_raw_directory directory in a dataframe,
         while adding the mean and the standard deviation in the process.
 
         :return: A dictionary of algorithms containing a dictionary of problems containing a dictionary of dimensions
@@ -55,11 +69,13 @@ class DataAcquisitionProvider:
         dataframes = {}
         processed = 0
 
-        for algorithm in os.listdir('assets/algorithms'):
-            print(ProgressHandler.show_progress(processed, len(os.listdir('assets/algorithms'))))
+        directory = DataAcquisitionProvider.__algorithms_raw_directory
+
+        for algorithm in os.listdir(directory):
+            print(ProgressHandler.show_progress(processed, len(os.listdir(directory))))
             processed += 1
             dataframes[algorithm] = {}
-            for problem_set in os.listdir(f'assets/algorithms/{algorithm}'):
+            for problem_set in os.listdir(f'{directory}/{algorithm}'):
                 filename = os.path.splitext(problem_set)[0].split('_')
                 problem = filename[-2]
                 dimension = filename[-1]
@@ -68,7 +84,7 @@ class DataAcquisitionProvider:
                     dataframes[algorithm][problem] = {}
 
                 dataframes[algorithm][problem][dimension] = pd.read_csv(
-                    f'assets/algorithms/{algorithm}/{problem_set}',
+                    f'{directory}/{algorithm}/{problem_set}',
                     delim_whitespace=True,
                     header=None)
 
@@ -178,6 +194,13 @@ class DataAcquisitionProvider:
         root_directory = 'assets/cached_instances/algorithms_comparisons'
 
         algorithms_comparisons = DataAcquisitionProvider.get_algorithms_comparisons(fast_fetch=False)
+
+        if os.path.exists(os.path.dirname(root_directory)):
+            subprocess.check_call(('attrib -R ' + root_directory + '\\* /S').split())
+            shutil.rmtree(root_directory)
+            os.makedirs(root_directory)
+        else:
+            os.makedirs(root_directory)
 
         for dimension in algorithms_comparisons:
             for parameter in algorithms_comparisons[dimension]:
